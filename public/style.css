@@ -1,0 +1,128 @@
+body {
+	font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI",
+		Helvetica, Arial, sans-serif;
+	/* Classic WhatsApp-like background color */
+	background-color: #d1d7db;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	margin: 0;
+}
+
+.container {
+	width: 100%;
+	max-width: 600px;
+	height: 90vh;
+	/* WhatsApp doodle background */
+	background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png");
+	background-color: #efeae2; /* Fallback color */
+	border-radius: 16px;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	border: none;
+}
+
+h1 {
+	text-align: center;
+	color: #333;
+	padding: 20px;
+	margin: 0;
+	border-bottom: 1px solid #ccc;
+	background-color: #f0f2f5; /* Solid header background */
+	font-weight: 500;
+	font-size: 24px;
+}
+
+.chat-box {
+	flex-grow: 1;
+	padding: 20px;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.message {
+	display: flex;
+	max-width: 80%;
+}
+
+.user-message {
+	align-self: flex-end;
+}
+
+.bot-message {
+	align-self: flex-start;
+}
+
+.bubble {
+	padding: 10px 15px;
+	border-radius: 20px;
+	word-wrap: break-word;
+	line-height: 1.4;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+}
+
+.user-message .bubble {
+	background-color: #dcf8c6; /* WhatsApp sent message green */
+	color: #000;
+	border-bottom-right-radius: 5px;
+}
+
+.bot-message .bubble {
+	background-color: #ffffff; /* WhatsApp received message white */
+	color: #333;
+	border-bottom-left-radius: 5px;
+}
+
+#chat-form {
+	display: flex;
+	gap: 10px;
+	padding: 20px;
+	border-top: 1px solid #ccc;
+	background-color: #f0f2f5; /* Solid footer background */
+	align-items: center;
+}
+
+#user-input {
+	flex-grow: 1;
+	border: 1px;
+	padding: 12px 15px;
+	font-size: 16px;
+	outline: none;
+	background-color: transparent;
+	transition: border-color 0.3s;
+}
+
+#user-input:focus {
+	border-bottom-color: #1a73e8;
+}
+
+#chat-form button {
+	background-color: #1a73e8;
+	color: white;
+	border: none;
+	border-radius: 50%;
+	width: 48px;
+	height: 48px;
+	margin-left: 10px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+	transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+#chat-form button:hover:not(:disabled) {
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+#chat-form button:disabled {
+	background-color: #8ab4f8;
+	box-shadow: none;
+	cursor: not-allowed;
+}
