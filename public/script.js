@@ -2,12 +2,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatForm = document.getElementById('chat-form');
   const userInput = document.getElementById('user-input');
   const chatBox = document.getElementById('chat-box');
-  const sendButton = chatForm.querySelector('button');
+  const sendButton = chatForm.querySelector('button[type="submit"]');
 
   /**
    * Appends a message to the chat box.
-   * @param {string} sender - Who sent the message ('user' or 'bot').
-   * @param {string} message - The message content.
+   * @param {string} sender - The sender of the message ('user' or 'bot').
+   * @param {string} message - The content of the message.
    */
   function addMessage(sender, message) {
     const messageContainer = document.createElement('div');
@@ -15,27 +15,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const messageBubble = document.createElement('div');
     messageBubble.classList.add('bubble');
-    messageBubble.textContent = message;
+    // Use innerText to preserve newlines from the AI response
+    messageBubble.innerText = message;
 
     messageContainer.appendChild(messageBubble);
     chatBox.appendChild(messageContainer);
-    chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the latest message
+    // Scroll to the bottom to see the latest message
+    chatBox.scrollTop = chatBox.scrollHeight;
   }
 
+  // Handle form submission
   chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const userMessage = userInput.value.trim();
-    if (!userMessage) return;
+    if (!userMessage) {
+      return; // Don't send empty messages
+    }
 
+    // Add user's message to the chat box
     addMessage('user', userMessage);
-    userInput.value = '';
+    userInput.value = ''; // Clear the input field
 
-    // Disable form controls while waiting for a response
+    // Disable the form while waiting for the bot's response
     userInput.disabled = true;
     sendButton.disabled = true;
 
-    // Show a thinking indicator
+    // Show a temporary "Thinking..." message
     const thinkingIndicator = document.createElement('div');
     thinkingIndicator.classList.add('message', 'bot-message');
     thinkingIndicator.innerHTML = '<div class="bubble">Thinking...</div>';
@@ -43,35 +49,44 @@ document.addEventListener('DOMContentLoaded', () => {
     chatBox.scrollTop = chatBox.scrollHeight;
 
     try {
-      // This is the fetch() function to connect to your backend
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: userMessage }),
+        // Match the backend API spec
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: userMessage }],
+        }),
       });
 
+      // Remove the "Thinking..." indicator
+      chatBox.removeChild(thinkingIndicator);
+
       if (!response.ok) {
-        const errorData = await response
-          .json()
-          .catch(() => ({ message: 'Server returned an error.' }));
-        throw new Error(errorData.message || 'Network response was not ok.');
+        // For HTTP errors like 4xx, 5xx
+        throw new Error('Failed to get response from server.');
       }
 
       const data = await response.json();
-      // The backend returns a JSON object like { reply: "..." }
-      const botMessage = data.reply;
-      console.log(botMessage);
 
-      chatBox.removeChild(thinkingIndicator);
-      addMessage('bot', botMessage);
+      // Check if the response has the 'result' property
+      if (data?.result) {
+        addMessage('bot', data.result);
+      } else {
+        // Handle cases where the response is ok, but no result is provided
+        addMessage('bot', 'Sorry, no response received.');
+      }
     } catch (error) {
-      console.error('Error fetching from /api/chat:', error);
-      chatBox.removeChild(thinkingIndicator);
-      addMessage('bot', `Sorry, something went wrong: ${error.message}`);
+      // This catches network errors or the error thrown above
+      if (chatBox.contains(thinkingIndicator)) {
+        chatBox.removeChild(thinkingIndicator);
+      }
+      // Display a generic error message for any failure
+      addMessage('bot', error.message || 'Failed to get response from server.');
+      console.error('Error sending message:', error);
     } finally {
-      // Re-enable form controls
+      // Re-enable the form controls
       userInput.disabled = false;
       sendButton.disabled = false;
       userInput.focus();

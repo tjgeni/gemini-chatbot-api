@@ -102,7 +102,7 @@ h1 {
 }
 
 #chat-form button {
-	background-color: #1a73e8;
+	background-color: #128c7e; /* WhatsApp-like green */
 	color: white;
 	border: none;
 	border-radius: 50%;
@@ -122,7 +122,7 @@ h1 {
 }
 
 #chat-form button:disabled {
-	background-color: #8ab4f8;
+	background-color: #b2d8d3; /* Lighter green for disabled state */
 	box-shadow: none;
 	cursor: not-allowed;
 }

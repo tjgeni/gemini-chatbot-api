@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 dotenv.config();
 
@@ -33,24 +33,45 @@ app.use(cors(corsOptions)); // Apply explicit CORS options globally
 app.use(express.json());
 app.use(express.static('public'));
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const GEMINI_MODEL = 'gemini-2.5-flash';
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-app.post('/api/chat', async (req, res) => {
-  const userMesage = req.body.message;
-
-  if (!userMesage) {
-    return res.status(400).json({ reply: 'Message is required' });
-  }
-
+function extractText(resp) {
   try {
-    const result = await model.generateContent(userMesage);
-    const text = result.response.text();
-    res.json({ reply: text });
+    const text =
+      resp?.response?.candidates?.[0]?.content?.parts?.[0]?.text ??
+      resp?.candidates?.[0]?.content?.parts?.[0]?.text ??
+      resp?.response?.candidates?.[0]?.content?.text;
+
+    return text ?? JSON.stringify(resp, null, 2);
+  } catch (error) {
+    console.error('Error extracting text:', error);
+    return JSON.stringify(resp, null, 2);
+  }
+}
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { messages } = req.body;
+
+    console.log(req);
+    if (!Array.isArray(messages)) throw new Error('messages must be an array');
+
+    const contents = messages.map((message) => ({
+      role: message.role,
+      parts: [{ text: message.content }],
+    }));
+
+    const response = await ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents,
+    });
+
+    res.json({ result: extractText(response) });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
